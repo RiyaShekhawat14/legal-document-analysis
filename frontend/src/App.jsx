@@ -1,11 +1,12 @@
+import Home from './Pages/Home.jsx'
+import Navbar from './Components/Common/Navbar.jsx';
 
-
-import './App.css'
 
 function App() {
   return (
     <div>
-      <h1>Legal Easy AI</h1>
+      <Navbar />
+      <Home />
     </div>
   );
 }
