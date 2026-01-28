@@ -1,22 +1,42 @@
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { LanguageContext } from "../../context/LanguageContext";
 
 function FileUpload() {
-    
-    const handleFileChange = (event) =>{
-        const file =event.target.files[0];
-        console.log(file);
-    };
+  const { language } = useContext(LanguageContext);
+  const navigate = useNavigate();
 
-    return (
-        <div className="upload-box">
-            <p>Select a legal document (PDF / DOC / TXT)</p>
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    console.log(file);
+  };
 
-            <input type="file" onChange={handleFileChange} />
+  const handleAnalyzeClick = () => {
+    // Abhi sirf navigation
+    navigate("/result");
+  };
 
-            <button className="btn-primary mt-20">
-                Analyze Document
-            </button>
-        </div>
-    );
+  return (
+    <div className="upload-box">
+
+      <p>
+        {language === "en"
+          ? "Select a legal document (PDF / DOC / TXT)"
+          : "कानूनी दस्तावेज़ चुनें (PDF / DOC / TXT)"}
+      </p>
+
+      <input
+        type="file"
+        onChange={handleFileChange}
+      />
+
+      <button className="btn-primary mt-20" onClick={handleAnalyzeClick}>
+        {language === "en" ? "Analyze Document" : "दस्तावेज़ विश्लेषण करें"}
+      </button>
+
+    </div>
+  );
 }
 
 export default FileUpload;

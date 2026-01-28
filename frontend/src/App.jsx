@@ -1,14 +1,7 @@
-import Home from './Pages/Home.jsx'
-import Navbar from './Components/Common/Navbar.jsx';
-
+import AppRoutes from "./routes";
 
 function App() {
-  return (
-    <div>
-      <Navbar />
-      <Home />
-    </div>
-  );
+  return <AppRoutes />;
 }
 
 export default App;
