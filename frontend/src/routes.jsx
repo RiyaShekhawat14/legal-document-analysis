@@ -4,6 +4,7 @@ import Home from "./Pages/Home";
 import Navbar from "./Components/Common/Navbar";
 import Result from "./Pages/Result";
 import Footer from "./Components/Common/Footer";
+import ChatFab from "./Components/Common/ChatFab";
 
 export default function AppRoutes() {
   return (
@@ -13,6 +14,7 @@ export default function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/result" element={<Result/>} />
       </Routes>
+      <ChatFab/>
       <Footer/>
     </BrowserRouter>
   );

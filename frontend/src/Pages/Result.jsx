@@ -1,17 +1,26 @@
 import { useContext } from "react";
 import { LanguageContext } from "../context/LanguageContext";
-import AudioPlayer from "../Components/Audio/AudioPlayer";
-import VoiceControl from "../Components/Audio/VoiceControls";
-import ChatBox from "../Components/Chat/ChatBox";
-import MessageBubble from "../Components/Chat/MessageBubble";
 
+
+
+ import SummaryCard from "../components/Analysis/SummaryCard";
+ import RiskBadge from "../components/Analysis/RiskBadge";
+ import ClauseCard from "../components/Analysis/ClauseCard";
+ import AdviceBox from "../components/Analysis/AdviceBox";
+import HighlightedText from "../components/Analysis/HighlightedText";
+
+import AudioPlayer from "../components/Audio/AudioPlayer";
+import VoiceControl from "../Components/Audio/VoiceControl";
+
+ 
 function Result() {
   const { language } = useContext(LanguageContext);
 
+  /* ===== Dummy Analysis Data (AI later) ===== */
   const summaryEn =
-    "This contract is between two parties for a rental agreement of 11 months.";
+    "This contract is a rental agreement for 11 months between the landlord and tenant.";
   const summaryHi =
-    "यह अनुबंध 11 महीनों के किराये के समझौते के लिए दो पक्षों के बीच है।";
+    "यह अनुबंध मकान मालिक और किरायेदार के बीच 11 महीनों का किराया समझौता है।";
 
   const riskLevel = "High";
 
@@ -20,46 +29,45 @@ function Result() {
       titleEn: "Termination Clause",
       titleHi: "समाप्ति शर्त",
       textEn:
-        "If the tenant leaves before 6 months, a penalty of 2 months rent applies.",
+        "Early termination will attract a penalty of two months rent.",
       textHi:
-        "यदि किरायेदार 6 महीने से पहले छोड़ता है, तो 2 महीने के किराये का जुर्माना लगेगा।",
+        "समय से पहले समाप्ति पर दो महीने के किराये का जुर्माना लगेगा।",
     },
     {
       titleEn: "Notice Period",
       titleHi: "नोटिस अवधि",
-      textEn: "A notice period of 60 days is mandatory.",
-      textHi: "60 दिनों का नोटिस देना अनिवार्य है।",
+      textEn:
+        "A mandatory notice period of 60 days must be served by either party.",
+      textHi:
+        "किसी भी पक्ष को 60 दिनों का अनिवार्य नोटिस देना होगा।",
     },
   ];
 
   return (
     <div className="container fade-in">
 
+      {/* PAGE TITLE */}
       <h1 className="page-title">
-        {language === "en" ? "Analysis Result" : "विश्लेषण परिणाम"}
+        {language === "en" ? "Document Analysis" : "दस्तावेज़ विश्लेषण"}
       </h1>
 
-      {/* Summary Card */}
-      
-      <div className="card">
-        <h2>{language === "en" ? "Summary" : "सारांश"}</h2>
+      {/* ================= SUMMARY ================= */}
+      <SummaryCard
+        summaryEn={summaryEn}
+        summaryHi={summaryHi}
+      />
 
-        <p>{language === "en" ? summaryEn : summaryHi}</p>
+      {/* ================= AUDIO ================= */}
+      <AudioPlayer />
+      <VoiceControl/>
 
-        {/* AUDIO UI */}
-        <AudioPlayer />
-        <VoiceControl />
-       </div>
-
-      {/* Risk Card */}
+      {/* ================= RISK ================= */}
       <div className="card risk-card">
         <h2>{language === "en" ? "Risk Level" : "जोखिम स्तर"}</h2>
-        <span className="risk-high">
-          {language === "en" ? "High Risk" : "उच्च जोखिम"}
-        </span>
+        <RiskBadge level={riskLevel} />
       </div>
 
-      {/* Clauses */}
+      {/* ================= IMPORTANT CLAUSES ================= */}
       <div className="card">
         <h2>
           {language === "en"
@@ -68,38 +76,37 @@ function Result() {
         </h2>
 
         {clauses.map((clause, index) => (
-          <div key={index} className="clause-card slide-up">
-            <h3>
-              {language === "en" ? clause.titleEn : clause.titleHi}
-            </h3>
-            <p>
-              {language === "en" ? clause.textEn : clause.textHi}
-            </p>
-          </div>
+          <ClauseCard
+            key={index}
+            titleEn={clause.titleEn}
+            titleHi={clause.titleHi}
+            textEn={clause.textEn}
+            textHi={clause.textHi}
+          />
         ))}
       </div>
 
-        <div className="card">
+      {/* ================= HIGHLIGHTED RISK TEXT ================= */}
+      <div className="card">
         <h2>
           {language === "en"
-            ? "Ask Questions About This Document"
-            : "इस दस्तावेज़ के बारे में प्रश्न पूछें"}
+            ? "Highlighted Risks"
+            : "हाइलाइट किए गए जोखिम"}
         </h2>
 
-        <div className="chat-area">
-          <MessageBubble 
-            sender="ai"
-            text={
-              language === "en"
-                ? "You can ask me anything about this document."
-                : "आप इस दस्तावेज़ के बारे में कुछ भी पूछ सकते हैं।"
-            }
-          />
-        </div>
+        <HighlightedText
+          text="Early termination will attract a penalty of two months rent."
+          keywords={["termination", "penalty"]}
+        />
+      </div>
 
-        < ChatBox />  
-      </div>   
+      {/* ================= AI ADVICE ================= */}
+      <AdviceBox
+        adviceEn="You should negotiate the penalty clause before signing the contract."
+        adviceHi="अनुबंध पर हस्ताक्षर करने से पहले जुर्माने की शर्त पर बातचीत करें।"
+      />
 
+     
     </div>
   );
 }

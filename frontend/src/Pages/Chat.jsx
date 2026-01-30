@@ -1,47 +1,70 @@
-import { useContext } from "react";
+import {usestate , useContext} from "react";
 import { LanguageContext } from "../context/LanguageContext";
-import ChatBox from "../Components/Chat/ChatBox";
-import MessageBubble from "../Components/Chat/MessageBubble";
 
-function Chat() {
+
+function Chat(){
   const { language } = useContext(LanguageContext);
 
+  const [messages, setMessages] = useState([
+    {
+      sender:"ai",
+      text:
+      language === "en"
+        ? "Hello! How can I assist you with your legal document today?"
+        : "नमस्ते! मैं आज आपके कानूनी दस्तावेज़ में आपकी कैसे सहायता कर सकता हूँ?"
+    },
+  ]);
+
+  const handleSend = (userText) => {
+    setMessages((prev) => [
+      ...prev,
+      { sender: "user", text: userText },
+      
+    ]);
+
+    //fake ai reply(temp)
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          text:
+            language === "en"
+              ? "I am analyzing your question. This will be AI-powered soon."
+              : "मैं आपके प्रश्न का विश्लेषण कर रहा हूँ। जल्द ही यह एआई से जुड़ा होगा।",
+        },
+      ]);
+    }, 800);
+  };
+
   return (
-    <div className="container fade-in">
-
+    <div classNAme="container fade-in">
       <h1 className="page-title">
-        {language === "en"
-          ? "Ask Questions about the Document"
-          : "दस्तावेज़ के बारे में प्रश्न पूछें"}
+        {language ==="en"
+          ? "Chat with LegalBot"
+          : "लीगलबॉट से चैट करें"}
       </h1>
-
-      {/* Messages area */}
       <div className="chat-area card">
-
-        <MessageBubble
-          sender="ai"
-          text={
-            language === "en"
-              ? "Hi! Ask me anything about this document."
-              : "नमस्ते! इस दस्तावेज़ के बारे में कुछ भी पूछें।"
-          }
-        />
-
-       <MessageBubble 
-       sender="user"
-          text={
-            language === "en"
-              ? "What is the notice period?"
-              : "नोटिस अवधि क्या है?"
-          } />
-
+        {messages.map((msg, index) => (
+          
+            <MessageBubble 
+            key={index}
+            sender={msg.sender}
+            text={msg.text}
+            />  
+        ))}
+       
+        
       </div>
 
-      {/* Input */}
-      <ChatBox/>
+      <ChatBox onSend={handleSend}/>
+
 
     </div>
   );
+
+
+
 }
 
 export default Chat;
