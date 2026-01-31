@@ -1,5 +1,8 @@
-import {usestate , useContext} from "react";
+import { useState, useContext} from "react";
 import { LanguageContext } from "../context/LanguageContext";
+import MessageBubble from "../Components/Chat/MessageBubble";
+import ChatBox from "../Components/Chat/ChatBox";
+
 
 
 function Chat(){

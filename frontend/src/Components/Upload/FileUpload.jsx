@@ -1,16 +1,23 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { DocumentContext } from "../../context/DocumentContext";
 
 import { LanguageContext } from "../../context/LanguageContext";
 
 function FileUpload() {
   const { language } = useContext(LanguageContext);
+  const {setDocument} = useContext(DocumentContext);
   const navigate = useNavigate();
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    console.log(file);
-  };
+    if (!file) return;
+    setDocument({
+      name: file.name,
+      type: file.type,
+      file: file,
+    });
+    };
 
   const handleAnalyzeClick = () => {
     // Abhi sirf navigation
