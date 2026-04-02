@@ -1,39 +1,22 @@
-import { useContext } from "react";
-import { LanguageContext } from "../../context/LanguageContext";
+import React from "react";
 
-function VoiceControl() {
-  const { language } = useContext(LanguageContext);
-
+function VoiceControl({ setVoiceLang, setSpeechRate }) {
   return (
-    <div className="voice-control card slide-up">
+    <div className="card">
+      <h3>🎙 Voice Settings</h3>
 
-      <h3>
-        🎙 {language === "en" ? "Voice Settings" : "आवाज़ सेटिंग्स"}
-      </h3>
+      <label>Voice Language:</label>
+      <select onChange={(e) => setVoiceLang(e.target.value)}>
+        <option value="en">English</option>
+        <option value="hi">Hindi</option>
+      </select>
 
-      {/* Voice Language */}
-      <div className="voice-row">
-        <label>
-          {language === "en" ? "Voice Language:" : "आवाज़ की भाषा:"}
-        </label>
-        <select>
-          <option>{language === "en" ? "English" : "अंग्रेज़ी"}</option>
-          <option>{language === "en" ? "Hindi" : "हिंदी"}</option>
-        </select>
-      </div>
-
-      {/* Voice Speed */}
-      <div className="voice-row">
-        <label>
-          {language === "en" ? "Speech Speed:" : "बोलने की गति:"}
-        </label>
-        <select>
-          <option>0.8x</option>
-          <option>1x</option>
-          <option>1.2x</option>
-        </select>
-      </div>
-
+      <label style={{ marginTop: "10px" }}>Speech Speed:</label>
+      <select onChange={(e) => setSpeechRate(parseFloat(e.target.value))}>
+        <option value="0.8">0.8x</option>
+        <option value="1">1x</option>
+        <option value="1.2">1.2x</option>
+      </select>
     </div>
   );
 }

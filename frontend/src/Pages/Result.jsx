@@ -1,73 +1,97 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { LanguageContext } from "../context/LanguageContext";
 
-
-
- import SummaryCard from "../components/Analysis/SummaryCard";
- import RiskBadge from "../components/Analysis/RiskBadge";
- import ClauseCard from "../components/Analysis/ClauseCard";
- import AdviceBox from "../components/Analysis/AdviceBox";
+import SummaryCard from "../components/Analysis/SummaryCard";
+import RiskBadge from "../components/Analysis/RiskBadge";
+import ClauseCard from "../components/Analysis/ClauseCard";
+import AdviceBox from "../components/Analysis/AdviceBox";
 import HighlightedText from "../components/Analysis/HighlightedText";
 
-import AudioPlayer from "../components/Audio/AudioPlayer";
-import VoiceControl from "../Components/Audio/VoiceControl";
+import VoiceControl from "../components/Audio/VoiceControl";
 
- 
 function Result() {
   const { language } = useContext(LanguageContext);
 
-  /* ===== Dummy Analysis Data (AI later) ===== */
-  const summaryEn =
-    "This contract is a rental agreement for 11 months between the landlord and tenant.";
-  const summaryHi =
-    "यह अनुबंध मकान मालिक और किरायेदार के बीच 11 महीनों का किराया समझौता है।";
+  const [summaryEn, setSummaryEn] = useState("");
+  const [summaryHi, setSummaryHi] = useState("");
+  const [advice, setAdvice] = useState("");
+  const [riskLevel, setRiskLevel] = useState("");
+  const [clauses, setClauses] = useState([]);
 
-  const riskLevel = "High";
+  const [voiceLang, setVoiceLang] = useState("en");
+  const [speechRate, setSpeechRate] = useState(1);
 
-  const clauses = [
-    {
-      titleEn: "Termination Clause",
-      titleHi: "समाप्ति शर्त",
-      textEn:
-        "Early termination will attract a penalty of two months rent.",
-      textHi:
-        "समय से पहले समाप्ति पर दो महीने के किराये का जुर्माना लगेगा।",
-    },
-    {
-      titleEn: "Notice Period",
-      titleHi: "नोटिस अवधि",
-      textEn:
-        "A mandatory notice period of 60 days must be served by either party.",
-      textHi:
-        "किसी भी पक्ष को 60 दिनों का अनिवार्य नोटिस देना होगा।",
-    },
-  ];
+  useEffect(() => {
+    const result = localStorage.getItem("analysisResult");
+
+    if (result) {
+      const parsed = JSON.parse(result);
+      const data = parsed.data;
+
+      setSummaryEn(data.summary_en);
+      setSummaryHi(data.summary_hi);
+      setAdvice(data.advice);
+      setRiskLevel(data.analysis.overall_risk);
+      setClauses(data.analysis.clauses);
+    }
+  }, []);
+
+  // Speak function
+  const speakText = () => {
+    const text = language === "hi" ? summaryHi : summaryEn;
+
+    const speech = new SpeechSynthesisUtterance(text);
+
+    const voices = window.speechSynthesis.getVoices();
+    let selectedVoice = null;
+
+    if (voiceLang === "hi") {
+      selectedVoice = voices.find(v => v.lang.includes("hi"));
+    } else {
+      selectedVoice = voices.find(v => v.lang.includes("en"));
+    }
+
+    if (selectedVoice) {
+      speech.voice = selectedVoice;
+    }
+
+    speech.rate = speechRate;
+
+    window.speechSynthesis.speak(speech);
+  };
+
+  const stopSpeech = () => {
+    window.speechSynthesis.cancel();
+  };
 
   return (
     <div className="container fade-in">
-
-      {/* PAGE TITLE */}
       <h1 className="page-title">
         {language === "en" ? "Document Analysis" : "दस्तावेज़ विश्लेषण"}
       </h1>
 
-      {/* ================= SUMMARY ================= */}
+      {/* SUMMARY */}
       <SummaryCard
         summaryEn={summaryEn}
         summaryHi={summaryHi}
       />
 
-      {/* ================= AUDIO ================= */}
-      <AudioPlayer />
-      <VoiceControl/>
+      <button onClick={speakText}>🔊 Speak</button>
+      <button onClick={stopSpeech}>⏹ Stop</button>
 
-      {/* ================= RISK ================= */}
+      {/* VOICE SETTINGS */}
+      <VoiceControl
+        setVoiceLang={setVoiceLang}
+        setSpeechRate={setSpeechRate}
+      />
+
+      {/* RISK */}
       <div className="card risk-card">
         <h2>{language === "en" ? "Risk Level" : "जोखिम स्तर"}</h2>
         <RiskBadge level={riskLevel} />
       </div>
 
-      {/* ================= IMPORTANT CLAUSES ================= */}
+      {/* CLAUSES */}
       <div className="card">
         <h2>
           {language === "en"
@@ -78,15 +102,15 @@ function Result() {
         {clauses.map((clause, index) => (
           <ClauseCard
             key={index}
-            titleEn={clause.titleEn}
-            titleHi={clause.titleHi}
-            textEn={clause.textEn}
-            textHi={clause.textHi}
+            titleEn={`Clause ${index + 1}`}
+            titleHi={`शर्त ${index + 1}`}
+            textEn={`Risk Level: ${clause.risk}`}
+            textHi={`जोखिम स्तर: ${clause.risk}`}
           />
         ))}
       </div>
 
-      {/* ================= HIGHLIGHTED RISK TEXT ================= */}
+      {/* HIGHLIGHT */}
       <div className="card">
         <h2>
           {language === "en"
@@ -95,18 +119,13 @@ function Result() {
         </h2>
 
         <HighlightedText
-          text="Early termination will attract a penalty of two months rent."
-          keywords={["termination", "penalty"]}
+          text={`Overall Risk Level: ${riskLevel}`}
+          keywords={["Risk", "High", "Penalty", "Termination"]}
         />
       </div>
 
-      {/* ================= AI ADVICE ================= */}
-      <AdviceBox
-        adviceEn="You should negotiate the penalty clause before signing the contract."
-        adviceHi="अनुबंध पर हस्ताक्षर करने से पहले जुर्माने की शर्त पर बातचीत करें।"
-      />
-
-     
+      {/* ADVICE */}
+      <AdviceBox adviceEn={advice} adviceHi={advice} />
     </div>
   );
 }

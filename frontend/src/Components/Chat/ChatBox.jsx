@@ -1,34 +1,52 @@
-import { useState, useContext } from "react";
-import { LanguageContext } from "../../context/LanguageContext";
+import { useState } from "react";
+import { askQuestion } from "../../services/chatService";
 
-function ChatBox({ onSend }) {
-  const { language } = useContext(LanguageContext);
-  const [text, setText] = useState("");
+function ChatBox() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
 
-  const handleClick = () => {
-    if (!text.trim()) return;
-    onSend(text);
-    setText("");
+  const sendMessage = async () => {
+    if (!input) return;
+
+    // User message
+    const userMessage = { sender: "user", text: input };
+    setMessages(prev => [...prev, userMessage]);
+
+    // Call RAG backend
+    const answer = await askQuestion(input);
+
+    // Bot message
+    const botMessage = { sender: "bot", text: answer };
+    setMessages(prev => [...prev, botMessage]);
+
+    setInput("");
   };
 
   return (
-    <div className="chat-input">
+    <div className="chat-container">
+      <div className="chat-messages">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={
+              msg.sender === "user"
+                ? "message user-message"
+                : "message bot-message"
+            }
+          >
+            {msg.text}
+          </div>
+        ))}
+      </div>
 
-      <textarea
-        rows="2"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder={
-          language === "en"
-            ? "Ask something about this document..."
-            : "इस दस्तावेज़ के बारे में प्रश्न पूछें..."
-        }
-      />
-
-      <button className="btn-primary" onClick={handleClick}>
-        {language === "en" ? "Send" : "भेजें"}
-      </button>
-
+      <div className="chat-input">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask about the document..."
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
     </div>
   );
 }
