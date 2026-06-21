@@ -1,97 +1,134 @@
-# Legal Document Analyzer
+# Legal Document Analyzer ⚖️
 
-AI-powered legal contract review tool with clause extraction, risk scoring, bilingual summaries, and RAG-based chat.
+AI-powered legal contract review tool that turns dense legal documents into clear, actionable insights.
 
-## Features
+Live app: https://legal-document-analysis-alpha.vercel.app
 
-- **Authentication** — JWT-based register/login with per-user document isolation
-- **Upload & Analyze** — PDF/TXT contracts → clause splitting (12 categories), red-flag detection (9 patterns), ML risk scoring, English + Hindi summaries, risk-based advice
-- **RAG Chat** — Ask questions about your uploaded contract; retrieves relevant chunks and generates grounded answers via HuggingFace API or OpenAI API
-- **General Q&A** — Ask legal questions without any document (knowledge base of 10 legal topics)
-- **Compare** — Upload two contracts side-by-side for risk/summary comparison
-- **History** — View/delete past analyzed documents (user-scoped)
-- **Clause Templates** — 21 professional clause templates (7 types x 3 versions)
+## What it does
+
+Upload any legal contract (PDF/TXT) and get instant analysis:
+
+- Clause extraction across 12 categories (Payment, Termination, Liability, Confidentiality, IP, etc.)
+- Red-flag detection for 9 high-risk patterns (unlimited liability, auto-renewal, non-compete, unilateral termination, and more)
+- ML-based risk scoring with confidence scores per clause
+- Executive summary in English and Hindi
+- Risk-based recommendations
+- Ask follow-up questions about the document with RAG-powered chat
+- Compare two contracts side by side
+- 21 professional clause templates for reference
 
 ## Tech Stack
 
-- **Backend:** FastAPI, SQLAlchemy, SQLite, FAISS, sentence-transformers (optional)
-- **Frontend:** React 19, Vite, React Router
-- **LLM:** HuggingFace Inference API or OpenAI API (no local model required for deployment)
-- **ML:** scikit-learn classifier with rule-based fallback
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, Vite, React Router, Tailwind CSS |
+| Backend | FastAPI, SQLAlchemy, SQLite |
+| ML | scikit-learn (TF-IDF + LinearSVC), rule-based fallback |
+| RAG | FAISS vector search, sentence-transformers embeddings |
+| LLM | HuggingFace Inference API, fine-tuned Qwen2.5-0.5B + LoRA |
+| Auth | JWT (python-jose), pbkdf2_sha256 password hashing |
+| Deploy | Render (backend), Vercel (frontend) |
+
+## Architecture
+
+```
+User ──→ React Frontend (Vercel)
+              │
+              ▼
+         FastAPI Backend (Render)
+              │
+     ┌────────┼────────┐
+     ▼        ▼        ▼
+  SQLite   ML Model   RAG Pipeline
+  (users,  (risk      (embed → FAISS →
+   docs,    scoring)   retrieve → LLM)
+   clauses)
+```
+
+## Key Features
+
+### Document Analysis
+- Upload PDF or TXT contracts
+- Automatic clause splitting and categorization into 12 types
+- Red-flag detection for risky language patterns
+- Per-clause risk classification (High/Medium/Low) with confidence scores
+- Overall document risk assessment
+- Bilingual summaries (English + Hindi)
+- Actionable advice based on risk level
+
+### RAG Chat
+- Ask questions about your uploaded contract
+- Retrieves relevant chunks using vector similarity search
+- Generates grounded answers using LLM (no hallucination)
+- General legal Q&A without document upload
+- Conversation history support
+
+### Document Comparison
+- Upload two contracts and compare side by side
+- Risk levels, summaries, and clause-by-clause breakdown
+
+### Clause Templates
+- 21 professionally drafted templates across 7 clause types
+- Three versions each: standard, pro-vendor, pro-client
+- Useful for understanding what fair terms look like
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/auth/register` | Register new user |
-| POST | `/auth/login` | Login (JSON body) |
-| GET | `/auth/me` | Get current user |
-| POST | `/analyze/analyze-risk` | Upload & analyze document |
-| GET | `/analyze/clause-templates/types` | List clause template types |
-| GET | `/analyze/clause-templates/{type}` | Get specific template |
-| GET | `/analyze/clause-templates/{type}/compare` | Compare template versions |
-| POST | `/chat/ask` | Ask a question (general or document-specific) |
-| GET | `/chat/status` | Get assistant + document status |
-| POST | `/chat/mode` | Switch LLM mode |
-| GET | `/documents/` | List user's documents |
-| GET | `/documents/{id}` | Get document clauses |
-| DELETE | `/documents/{id}` | Delete document |
-| POST | `/compare/` | Compare two documents |
-| POST | `/translate/` | Translate text to Hindi |
-| GET | `/health` | Health check |
+```
+POST   /auth/register          Register new user
+POST   /auth/login             Login
+GET    /auth/me                Get current user
+POST   /analyze/analyze-risk   Upload & analyze document
+GET    /documents/             List user's documents
+GET    /documents/{id}         Get document clauses
+DELETE /documents/{id}         Delete document
+POST   /chat/ask               Ask a question
+GET    /chat/status            Get assistant status
+POST   /compare/               Compare two documents
+POST   /translate/             Translate to Hindi
+GET    /health                 Health check
+GET    /docs                   Swagger API docs
+```
 
-## Run Locally
+## Deployment
 
-### Backend
+Backend: https://legal-document-analysis.onrender.com
+Frontend: https://legal-document-analysis-alpha.vercel.app
+API Docs: https://legal-document-analysis.onrender.com/docs
+
+## Local Development
 
 ```powershell
+# Backend
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r backend/requirements.txt
-Copy-Item backend/.env.example backend/.env
+cp backend/.env.example backend/.env
 uvicorn backend.app:app --reload
-```
 
-### Frontend
-
-```powershell
+# Frontend
 npm --prefix frontend install
-Copy-Item frontend/.env.example frontend/.env
+cp frontend/.env.example frontend/.env
 npm --prefix frontend run dev
 ```
 
-Open http://localhost:5173
+## What I Learned
 
-## Deploy to Render
+- Building a full-stack AI app with RAG (Retrieval-Augmented Generation)
+- Fine-tuning a Qwen2.5 LLM with LoRA for legal domain-specific responses
+- Designing graceful fallback chains (API LLM → local model → rule-based)
+- Deploying a monorepo with separate frontend (Vercel) and backend (Render)
+- Handling CORS, environment variables, and production configuration
+- Writing comprehensive E2E tests for API validation
 
-The repo includes a `render.yaml` for one-click deployment.
+## Future Improvements
 
-1. Go to [render.com](https://render.com) → New → Web Service
-2. Connect your GitHub repo
-3. Set environment variables:
-   - `HUGGINGFACE_API_KEY` — your HF token (get one at https://huggingface.co/settings/tokens)
-   - `SECRET_KEY` — a random string
-   - `USE_API_LLM` — `true`
-4. Deploy
+- Postgres for multi-user production
+- DOCX file support
+- PDF export with highlighted risk clauses
+- User collaboration and sharing
+- E-signature integration
 
-The backend works without any API key (falls back to extractive summary and retrieval-based chat), but for full LLM chat you need a HuggingFace or OpenAI key.
+---
 
-## Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SECRET_KEY` | `supersecretkey` | JWT signing key |
-| `DATABASE_URL` | `sqlite:///./data/legal_docs.db` | Database URL |
-| `HUGGINGFACE_API_KEY` | — | HuggingFace API token |
-| `OPENAI_API_KEY` | — | OpenAI API key (optional) |
-| `USE_API_LLM` | `true` | Use API-based LLM (no local model) |
-| `OLLAMA_ENABLED` | `false` | Enable Ollama local LLM |
-| `HF_CHAT_MODEL` | `Qwen/Qwen2.5-0.5B-Instruct` | HF model for chat |
-| `HF_SUMMARY_MODEL` | `facebook/bart-large-cnn` | HF model for summary |
-| `HF_TRANSLATION_MODEL` | `Helsinki-NLP/opus-mt-en-hi` | HF model for translation |
-| `CORS_ORIGINS` | localhost origins | Allowed CORS origins |
-| `VECTOR_DB_BACKEND` | `faiss` | Vector store backend |
-
-## License
-
-MIT
+GitHub: https://github.com/RiyaShekhawat14/legal-document-analysis
