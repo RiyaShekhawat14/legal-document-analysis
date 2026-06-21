@@ -1,12 +1,20 @@
-export async function askQuestion(question) {
-  const response = await fetch("http://127.0.0.1:8000/rag/ask", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ question }),
-  });
+import { apiRequest } from "./api";
 
-  const data = await response.json();
-  return data.answer;
+export async function getAssistantStatus() {
+  return apiRequest("/chat/status");
+}
+
+export async function askQuestion(question, messages = []) {
+  const history = messages
+    .filter((message) => message.sender === "user" || message.sender === "ai")
+    .slice(-6)
+    .map((message) => ({
+      role: message.sender === "ai" ? "assistant" : "user",
+      content: message.text,
+    }));
+
+  return apiRequest("/chat/ask", "POST", {
+    message: question,
+    history,
+  });
 }

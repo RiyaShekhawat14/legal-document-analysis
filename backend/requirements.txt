@@ -9,6 +9,14 @@ PyPDF2
 scikit-learn
 pandas
 numpy
-passlib[bcrypt]
+passlib
 python-jose
 pdfplumber
+requests
+torch
+transformers
+peft
+accelerate
+sentence-transformers
+faiss-cpu
+qdrant-client

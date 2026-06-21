@@ -6,13 +6,8 @@ function ClauseCard({ titleEn, titleHi, textEn, textHi }) {
 
   return (
     <div className="clause-card slide-up">
-      <h3>
-        {language === "en" ? titleEn : titleHi}
-      </h3>
-
-      <p>
-        {language === "en" ? textEn : textHi}
-      </p>
+      <h3>{language === "en" ? titleEn : titleHi}</h3>
+      <p>{language === "en" ? textEn : textHi}</p>
     </div>
   );
 }

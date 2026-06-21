@@ -33,11 +33,7 @@ def predict_risk(text: str) -> dict:
     vector = tfidf.transform([cleaned_text])
     prediction = model.predict(vector)[0]
 
-    try:
-        confidence = model.predict_proba(vector).max()
-        confidence = round(float(confidence), 2)
-    except:
-        confidence = None
+    confidence = _compute_confidence(vector)
 
     risk_label = label_encoder.inverse_transform([prediction])[0]
 
@@ -45,3 +41,21 @@ def predict_risk(text: str) -> dict:
         "risk": risk_label,
         "confidence": confidence
     }
+
+
+def _compute_confidence(vector) -> float | None:
+    try:
+        if hasattr(model, "predict_proba"):
+            return round(float(model.predict_proba(vector).max()), 2)
+
+        if hasattr(model, "decision_function"):
+            scores = model.decision_function(vector)[0]
+            if hasattr(scores, '__iter__'):
+                import numpy as np
+                exp_scores = np.exp(scores - scores.max())
+                probs = exp_scores / exp_scores.sum()
+                return round(float(probs.max()), 2)
+            return round(float(1 / (1 + abs(scores))), 2)
+    except Exception:
+        pass
+    return None

@@ -1,15 +1,20 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function useRisk() {
-  const [riskData, setRiskData] = useState(null);
-
-  useEffect(() => {
+  const [riskData] = useState(() => {
     const result = localStorage.getItem("analysisResult");
-    if (result) {
-      const parsed = JSON.parse(result);
-      setRiskData(parsed.data.analysis);
+
+    if (!result) {
+      return null;
     }
-  }, []);
+
+    try {
+      const parsed = JSON.parse(result);
+      return parsed.data.analysis;
+    } catch {
+      return null;
+    }
+  });
 
   return riskData;
 }

@@ -1,13 +1,18 @@
-function RiskBadge({ level }) {
-  const getColor = () => {
-    if (level === "High") return "risk-high";
-    if (level === "Medium") return "risk-medium";
-    return "risk-low";
-  };
+function RiskBadge({ level = "Unknown", compact = false }) {
+  const normalized = level.toLowerCase();
+  let variant = "risk-neutral";
+
+  if (normalized.includes("high")) {
+    variant = "risk-high";
+  } else if (normalized.includes("medium")) {
+    variant = "risk-medium";
+  } else if (normalized.includes("low")) {
+    variant = "risk-low";
+  }
 
   return (
-    <span className={`risk-badge ${getColor()}`}>
-      {level} Risk
+    <span className={`risk-badge ${variant}${compact ? " risk-badge-compact" : ""}`}>
+      {level}
     </span>
   );
 }

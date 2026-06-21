@@ -1,19 +1,19 @@
-
 import { useContext } from "react";
 import { LanguageContext } from "../../context/LanguageContext";
-import AudioPlayer from "../Audio/AudioPlayer";
 
 function SummaryCard({ summaryEn, summaryHi }) {
   const { language } = useContext(LanguageContext);
 
   return (
-    <div className="card fade-in">
-      <div className="summary-header">
-        <h2>{language === "en" ? "Summary" : "सारांश"}</h2>
-        <AudioPlayer/>
+    <div className="card">
+      <div className="section-header">
+        <div>
+          <span className="section-kicker">Executive summary</span>
+          <h2>{language === "en" ? "Summary" : "सारांश"}</h2>
+        </div>
       </div>
 
-      <p>{language === "en" ? summaryEn : summaryHi}</p>
+      <p className="summary-text">{language === "en" ? summaryEn : summaryHi}</p>
     </div>
   );
 }

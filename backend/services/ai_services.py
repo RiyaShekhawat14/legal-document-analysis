@@ -1,42 +1,29 @@
-import requests
-import time
-from config.settings import settings
-
-API_URL = "https://router.huggingface.co/hf-inference/models/facebook/bart-large-cnn"
-
-headers = {
-    "Authorization": f"Bearer {settings.HUGGINGFACE_API_KEY}",
-    "Content-Type": "application/json"
-}
+from utils.logger import logger
 
 
 def summarize_text(text):
-    try:
-        if not text:
-            return "No text available."
+    if not text:
+        return "No text available."
+    return _extractive_summary(text[:3000])
 
-        payload = {
-            "inputs": text[:1000],
-            "parameters": {
-                "max_length": 120,
-                "min_length": 30
-            }
-        }
 
-        for _ in range(3):
-            response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
-            result = response.json()
+def _extractive_summary(text: str, max_sentences: int = 4) -> str:
+    sentences = [s.strip() for s in text.replace("\n", " ").split(".") if len(s.strip()) > 20]
+    if not sentences:
+        return text[:300].strip() + "..." if len(text) > 300 else text.strip()
 
-            print("HF Summary Response:", result)
+    word_freq = {}
+    words = text.lower().split()
+    for word in words:
+        clean = word.strip(".,;:!?()[]{}'\"-")
+        if len(clean) > 3:
+            word_freq[clean] = word_freq.get(clean, 0) + 1
 
-            if isinstance(result, list) and "summary_text" in result[0]:
-                return result[0]["summary_text"]
+    scored = []
+    for i, sentence in enumerate(sentences[:25]):
+        score = sum(word_freq.get(w.strip(".,;:!?()[]{}'\"-").lower(), 0) for w in sentence.split())
+        scored.append((score / max(len(sentence.split()), 1), i, sentence))
 
-            if isinstance(result, dict) and "error" in result:
-                time.sleep(5)
-
-        return "Summary not available"
-
-    except Exception as e:
-        print("Summary Error:", e)
-        return "Summary not available"
+    scored.sort(reverse=True)
+    top = sorted(scored[:max_sentences], key=lambda x: x[1])
+    return ". ".join(s[2] for s in top) + "."

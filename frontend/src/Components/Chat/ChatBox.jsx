@@ -1,52 +1,81 @@
-import { useState } from "react";
-import { askQuestion } from "../../services/chatService";
+import { useEffect, useState } from "react";
+import { askQuestion } from "../../Services/chatService";
 
-function ChatBox() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+function ChatBox({ draft, setDraft, messages, setMessages, disabled = false }) {
+  const [input, setInput] = useState(draft || "");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setInput(draft || "");
+  }, [draft]);
 
   const sendMessage = async () => {
-    if (!input) return;
+    const value = input.trim();
 
-    // User message
-    const userMessage = { sender: "user", text: input };
-    setMessages(prev => [...prev, userMessage]);
+    if (!value || loading || disabled) {
+      return;
+    }
 
-    // Call RAG backend
-    const answer = await askQuestion(input);
-
-    // Bot message
-    const botMessage = { sender: "bot", text: answer };
-    setMessages(prev => [...prev, botMessage]);
-
+    const nextMessages = [...messages, { sender: "user", text: value }];
+    setMessages(nextMessages);
     setInput("");
+    setDraft("");
+    setLoading(true);
+
+    // Add thinking indicator
+    const thinkingMessage = { sender: "ai", text: "Thinking...", isThinking: true };
+    setMessages([...nextMessages, thinkingMessage]);
+
+    try {
+      const startTime = Date.now();
+      const result = await askQuestion(value, messages);
+      const elapsedTime = Date.now() - startTime;
+      
+      // Ensure minimum response time for natural feel (1.5 seconds)
+      const minTime = 1500;
+      if (elapsedTime < minTime) {
+        await new Promise(resolve => setTimeout(resolve, minTime - elapsedTime));
+      }
+
+      setMessages([
+        ...nextMessages,
+        { sender: "ai", text: result.answer, mode: result.mode, isThinking: false },
+      ]);
+    } catch (error) {
+      setMessages([
+        ...nextMessages,
+        {
+          sender: "ai",
+          text: error.message || "I couldn't answer that right now.",
+          isThinking: false,
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="chat-container">
-      <div className="chat-messages">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={
-              msg.sender === "user"
-                ? "message user-message"
-                : "message bot-message"
-            }
-          >
-            {msg.text}
-          </div>
-        ))}
-      </div>
-
-      <div className="chat-input">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about the document..."
-        />
-        <button onClick={sendMessage}>Send</button>
-      </div>
+    <div className="chat-input-shell">
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Ask about the document or get legal advice..."
+        disabled={disabled || loading}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            sendMessage();
+          }
+        }}
+      />
+      <button
+        className="btn-primary"
+        onClick={sendMessage}
+        type="button"
+        disabled={disabled || loading}
+      >
+        {loading ? "Analyzing..." : "Send"}
+      </button>
     </div>
   );
 }

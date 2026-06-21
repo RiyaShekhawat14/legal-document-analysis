@@ -1,25 +1,27 @@
-import { useContext} from "react";
+import { useContext } from "react";
 import { LanguageContext } from "../../context/LanguageContext";
 
 function LanguageToggle() {
-    const { language, changeLanguage } = useContext(LanguageContext);
+  const { language, changeLanguage } = useContext(LanguageContext);
 
-    return(
-        <div>
-            <button onClick ={() => changeLanguage('en')}
-            className={language==="en"?"btn-primary":""}>
-                English
-            </button>
+  return (
+    <div className="language-toggle" role="group" aria-label="Language toggle">
+      <button
+        type="button"
+        onClick={() => changeLanguage("en")}
+        className={language === "en" ? "lang-active" : ""}
+      >
+        EN
+      </button>
+      <button
+        type="button"
+        onClick={() => changeLanguage("hi")}
+        className={language === "hi" ? "lang-active" : ""}
+      >
+        HI
+      </button>
+    </div>
+  );
+}
 
-            <button onClick={()=> changeLanguage("hi")}
-            style={{marginLeft:"10px"}}
-             className={language==="hi"?"btn-primary":""}>
-                Hindi
-            </button>
-            
-
-        </div>
-    );
-
-}  
 export default LanguageToggle;

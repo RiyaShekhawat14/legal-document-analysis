@@ -1,61 +1,84 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { LanguageContext } from "../context/LanguageContext";
+import SummaryCard from "../Components/Analysis/SummaryCard";
+import RiskBadge from "../Components/Analysis/RiskBadge";
+import ClauseCard from "../Components/Analysis/ClauseCard";
+import AdviceBox from "../Components/Analysis/AdviceBox";
+import HighlightedText from "../Components/Analysis/HighlightedText";
+import VoiceControl from "../Components/Audio/VoiceControl";
 
-import SummaryCard from "../components/Analysis/SummaryCard";
-import RiskBadge from "../components/Analysis/RiskBadge";
-import ClauseCard from "../components/Analysis/ClauseCard";
-import AdviceBox from "../components/Analysis/AdviceBox";
-import HighlightedText from "../components/Analysis/HighlightedText";
+const copy = {
+  en: {
+    title: "Document analysis",
+    missing: "No analysis result was found. Upload a document to begin.",
+    risk: "Overall risk",
+    clauses: "Priority clauses",
+    highlights: "Risk signals",
+    speak: "Speak summary",
+    stop: "Stop",
+    assistant: "Open AI assistant",
+  },
+  hi: {
+    title: "दस्तावेज़ विश्लेषण",
+    missing: "कोई विश्लेषण परिणाम नहीं मिला। शुरू करने के लिए दस्तावेज़ अपलोड करें।",
+    risk: "कुल जोखिम",
+    clauses: "प्राथमिक क्लॉज़",
+    highlights: "जोखिम संकेत",
+    speak: "सारांश सुनें",
+    stop: "रोकें",
+    assistant: "एआई असिस्टेंट खोलें",
+  },
+};
 
-import VoiceControl from "../components/Audio/VoiceControl";
+function getStoredAnalysis() {
+  const result = localStorage.getItem("analysisResult");
+
+  if (!result) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(result)?.data ?? null;
+  } catch {
+    return null;
+  }
+}
 
 function Result() {
   const { language } = useContext(LanguageContext);
-
-  const [summaryEn, setSummaryEn] = useState("");
-  const [summaryHi, setSummaryHi] = useState("");
-  const [advice, setAdvice] = useState("");
-  const [riskLevel, setRiskLevel] = useState("");
-  const [clauses, setClauses] = useState([]);
-
   const [voiceLang, setVoiceLang] = useState("en");
   const [speechRate, setSpeechRate] = useState(1);
+  const data = useMemo(() => getStoredAnalysis(), []);
+  const t = copy[language];
 
-  useEffect(() => {
-    const result = localStorage.getItem("analysisResult");
+  if (!data) {
+    return (
+      <div className="page">
+        <div className="card empty-state">
+          <h1 className="page-title">{t.title}</h1>
+          <p>{t.missing}</p>
+        </div>
+      </div>
+    );
+  }
 
-    if (result) {
-      const parsed = JSON.parse(result);
-      const data = parsed.data;
+  const summaryText = language === "hi" ? data.summary_hi : data.summary_en;
+  const riskLevel = data.analysis?.overall_risk || "Unknown";
+  const clauses = data.analysis?.clauses || [];
 
-      setSummaryEn(data.summary_en);
-      setSummaryHi(data.summary_hi);
-      setAdvice(data.advice);
-      setRiskLevel(data.analysis.overall_risk);
-      setClauses(data.analysis.clauses);
-    }
-  }, []);
-
-  // Speak function
   const speakText = () => {
-    const text = language === "hi" ? summaryHi : summaryEn;
-
-    const speech = new SpeechSynthesisUtterance(text);
+    const speech = new SpeechSynthesisUtterance(summaryText);
+    speech.rate = speechRate;
 
     const voices = window.speechSynthesis.getVoices();
-    let selectedVoice = null;
-
-    if (voiceLang === "hi") {
-      selectedVoice = voices.find(v => v.lang.includes("hi"));
-    } else {
-      selectedVoice = voices.find(v => v.lang.includes("en"));
-    }
+    const selectedVoice = voices.find((voice) =>
+      voice.lang.toLowerCase().includes(voiceLang),
+    );
 
     if (selectedVoice) {
       speech.voice = selectedVoice;
     }
-
-    speech.rate = speechRate;
 
     window.speechSynthesis.speak(speech);
   };
@@ -65,67 +88,71 @@ function Result() {
   };
 
   return (
-    <div className="container fade-in">
-      <h1 className="page-title">
-        {language === "en" ? "Document Analysis" : "दस्तावेज़ विश्लेषण"}
-      </h1>
-
-      {/* SUMMARY */}
-      <SummaryCard
-        summaryEn={summaryEn}
-        summaryHi={summaryHi}
-      />
-
-      <button onClick={speakText}>🔊 Speak</button>
-      <button onClick={stopSpeech}>⏹ Stop</button>
-
-      {/* VOICE SETTINGS */}
-      <VoiceControl
-        setVoiceLang={setVoiceLang}
-        setSpeechRate={setSpeechRate}
-      />
-
-      {/* RISK */}
-      <div className="card risk-card">
-        <h2>{language === "en" ? "Risk Level" : "जोखिम स्तर"}</h2>
-        <RiskBadge level={riskLevel} />
+    <div className="page">
+      <div className="page-header">
+        <span className="eyebrow">Analysis output</span>
+        <h1 className="page-title">{t.title}</h1>
+        <p className="page-subtitle">{data.filename}</p>
       </div>
 
-      {/* CLAUSES */}
-      <div className="card">
-        <h2>
-          {language === "en"
-            ? "Important Clauses"
-            : "महत्वपूर्ण शर्तें"}
-        </h2>
+      <div className="result-layout">
+        <div className="result-main">
+          <SummaryCard summaryEn={data.summary_en} summaryHi={data.summary_hi} />
 
-        {clauses.map((clause, index) => (
-          <ClauseCard
-            key={index}
-            titleEn={`Clause ${index + 1}`}
-            titleHi={`शर्त ${index + 1}`}
-            textEn={`Risk Level: ${clause.risk}`}
-            textHi={`जोखिम स्तर: ${clause.risk}`}
+          <div className="card action-row">
+            <button className="btn-primary" onClick={speakText}>
+              {t.speak}
+            </button>
+            <button className="btn-secondary" onClick={stopSpeech}>
+              {t.stop}
+            </button>
+            <Link className="btn-secondary" to="/chat">
+              {t.assistant}
+            </Link>
+          </div>
+
+          <div className="card">
+            <div className="section-header">
+              <h2>{t.clauses}</h2>
+              <span className="section-count">{clauses.length} clauses reviewed</span>
+            </div>
+
+            <div className="clause-list">
+              {clauses.map((clause, index) => (
+                <ClauseCard
+                  key={`${clause.clause_type}-${index}`}
+                  titleEn={clause.clause_type || `Clause ${index + 1}`}
+                  titleHi={clause.clause_type || `क्लॉज़ ${index + 1}`}
+                  textEn={`Risk: ${clause.risk} • Confidence: ${clause.confidence ?? "N/A"}`}
+                  textHi={`जोखिम: ${clause.risk} • विश्वास स्तर: ${clause.confidence ?? "N/A"}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="card">
+            <h2>{t.highlights}</h2>
+            <HighlightedText
+              text={`Overall Risk Level: ${riskLevel}. Advice: ${data.advice}`}
+              keywords={["Risk", "High", "Penalty", "Termination", "Advice"]}
+            />
+          </div>
+
+          <AdviceBox adviceEn={data.advice} adviceHi={data.advice} />
+        </div>
+
+        <aside className="result-sidebar">
+          <div className="card metric-card">
+            <span className="section-kicker">{t.risk}</span>
+            <RiskBadge level={riskLevel} />
+          </div>
+
+          <VoiceControl
+            setVoiceLang={setVoiceLang}
+            setSpeechRate={setSpeechRate}
           />
-        ))}
+        </aside>
       </div>
-
-      {/* HIGHLIGHT */}
-      <div className="card">
-        <h2>
-          {language === "en"
-            ? "Highlighted Risks"
-            : "हाइलाइट किए गए जोखिम"}
-        </h2>
-
-        <HighlightedText
-          text={`Overall Risk Level: ${riskLevel}`}
-          keywords={["Risk", "High", "Penalty", "Termination"]}
-        />
-      </div>
-
-      {/* ADVICE */}
-      <AdviceBox adviceEn={advice} adviceHi={advice} />
     </div>
   );
 }
