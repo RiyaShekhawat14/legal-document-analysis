@@ -117,6 +117,8 @@ class Settings(BaseSettings):
                 "http://localhost:4173",
                 "http://127.0.0.1:4173",
                 "http://[::1]:4173",
+                "https://legal-document-analysis-alpha.vercel.app",
+                "https://legal-document-analysis.vercel.app",
             ]
         ),
     )
@@ -271,4 +273,7 @@ load_runtime_mode()
 
 
 def get_cors_origins():
-    return [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+    origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+    if "*" in origins:
+        return ["*"]
+    return origins
