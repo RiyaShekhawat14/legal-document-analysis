@@ -70,6 +70,16 @@ backend/data/qdrant/
 
 # ---------- Generated PDF ----------
 sample_contract.pdf
+sample_nda.pdf
+*.pdf
+
+# ---------- Unnecessary docs ----------
+CHANGELOG.md
+LLM_MODEL_GUIDE.md
+QUICK_START.md
+REAL_WORLD_FEATURES.md
+START_HERE.md
+VERIFICATION.md
 
 # ---------- OS / Editor ----------
 .DS_Store
