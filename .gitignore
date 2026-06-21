@@ -1,0 +1,97 @@
+# ==============================================================
+# Legal Document Analyzer — .gitignore
+# ==============================================================
+
+# ---------- Secrets / Environment ----------
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/.env.local
+frontend/.env
+frontend/.env.local
+*.env
+
+# ---------- Python ----------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# ---------- Node.js ----------
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- Backend runtime data ----------
+backend/data/
+backend/uploads/
+backend/logs/
+backend/runtime_data/
+backend/*.db
+backend/*.db-journal
+backend/app.log
+backend/legal_docs.db
+
+# ---------- Root runtime artifacts ----------
+data/
+uploads/
+logs/
+runtime_data/
+*.db
+*.db-journal
+*.log
+app.log
+
+# ---------- ML / Model artifacts ----------
+*.pkl
+*.pickle
+backend/ml/artifacts/
+backend/models/legal_lora_model/adapter_model.safetensors
+backend/models/legal_lora_model/*.safetensors
+
+# ---------- Qdrant / Vector store ----------
+backend/data/qdrant/
+*.qdrant
+
+# ---------- Generated PDF ----------
+sample_contract.pdf
+
+# ---------- OS / Editor ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ---------- Jupyter ----------
+.ipynb_checkpoints/
+*.ipynb
+
+# ---------- Test / Coverage ----------
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.tox/
+
+# Redundant config
+backend/config/api_keys.py
