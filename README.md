@@ -1,105 +1,97 @@
 # Legal Document Analyzer
 
-Legal Document Analyzer is a full-stack legal review app with:
+AI-powered legal contract review tool with clause extraction, risk scoring, bilingual summaries, and RAG-based chat.
 
-- secure authentication
-- document upload and clause risk analysis
-- English and Hindi summaries
-- side-by-side document comparison
-- RAG-based chat over the latest analyzed document
-- a fine-tuned legal assistant fallback path when the full model is unavailable
+## Features
 
-## Stack
+- **Authentication** — JWT-based register/login with per-user document isolation
+- **Upload & Analyze** — PDF/TXT contracts → clause splitting (12 categories), red-flag detection (9 patterns), ML risk scoring, English + Hindi summaries, risk-based advice
+- **RAG Chat** — Ask questions about your uploaded contract; retrieves relevant chunks and generates grounded answers via HuggingFace API or OpenAI API
+- **General Q&A** — Ask legal questions without any document (knowledge base of 10 legal topics)
+- **Compare** — Upload two contracts side-by-side for risk/summary comparison
+- **History** — View/delete past analyzed documents (user-scoped)
+- **Clause Templates** — 21 professional clause templates (7 types x 3 versions)
 
-- Backend: FastAPI, SQLAlchemy, SQLite, Qdrant or FAISS, sentence-transformers
-- Frontend: React, Vite, React Router
-- ML/RAG: local classifier for clause risk, embedding-based retrieval, optional fine-tuned legal LLM
+## Tech Stack
 
-## App Workflow
+- **Backend:** FastAPI, SQLAlchemy, SQLite, FAISS, sentence-transformers (optional)
+- **Frontend:** React 19, Vite, React Router
+- **LLM:** HuggingFace Inference API or OpenAI API (no local model required for deployment)
+- **ML:** scikit-learn classifier with rule-based fallback
 
-1. A user registers or logs in.
-2. The frontend stores the bearer token and sends it on protected API requests.
-3. The user uploads a legal document from the home page.
-4. The backend extracts text, splits clauses, predicts clause risk, builds summaries, and stores the document under that user.
-5. The same upload is indexed into that user’s RAG session.
-6. The result page shows summary, overall risk, clause insights, and advice.
-7. The user can open chat and ask follow-up questions grounded in the latest indexed document.
-8. The user can view history, inspect stored clause results, compare two documents, or delete prior uploads.
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/register` | Register new user |
+| POST | `/auth/login` | Login (JSON body) |
+| GET | `/auth/me` | Get current user |
+| POST | `/analyze/analyze-risk` | Upload & analyze document |
+| GET | `/analyze/clause-templates/types` | List clause template types |
+| GET | `/analyze/clause-templates/{type}` | Get specific template |
+| GET | `/analyze/clause-templates/{type}/compare` | Compare template versions |
+| POST | `/chat/ask` | Ask a question (general or document-specific) |
+| GET | `/chat/status` | Get assistant + document status |
+| POST | `/chat/mode` | Switch LLM mode |
+| GET | `/documents/` | List user's documents |
+| GET | `/documents/{id}` | Get document clauses |
+| DELETE | `/documents/{id}` | Delete document |
+| POST | `/compare/` | Compare two documents |
+| POST | `/translate/` | Translate text to Hindi |
+| GET | `/health` | Health check |
 
 ## Run Locally
 
 ### Backend
 
-1. Create and activate a virtual environment.
-2. Install dependencies:
-
 ```powershell
+python -m venv .venv
+.\.venv\Scripts\activate
 pip install -r backend/requirements.txt
-```
-
-3. Copy env values:
-
-```powershell
 Copy-Item backend/.env.example backend/.env
-```
-
-4. Start the API:
-
-```powershell
 uvicorn backend.app:app --reload
-```
-
-Backend health endpoint:
-
-```text
-GET /health
 ```
 
 ### Frontend
 
-1. Copy env values:
-
-```powershell
-Copy-Item frontend/.env.example frontend/.env
-```
-
-2. Install dependencies:
-
 ```powershell
 npm --prefix frontend install
-```
-
-3. Start the client:
-
-```powershell
+Copy-Item frontend/.env.example frontend/.env
 npm --prefix frontend run dev
 ```
 
-## Repo Scripts
+Open http://localhost:5173
 
-From the repo root:
+## Deploy to Render
 
-```powershell
-npm run frontend:dev
-npm run frontend:build
-npm run frontend:lint
-```
+The repo includes a `render.yaml` for one-click deployment.
 
-## Production Notes
+1. Go to [render.com](https://render.com) → New → Web Service
+2. Connect your GitHub repo
+3. Set environment variables:
+   - `HUGGINGFACE_API_KEY` — your HF token (get one at https://huggingface.co/settings/tokens)
+   - `SECRET_KEY` — a random string
+   - `USE_API_LLM` — `true`
+4. Deploy
 
-- Set a strong `SECRET_KEY`.
-- Set `CORS_ORIGINS` to your deployed frontend origin.
-- Keep model artifacts out of Git unless you intentionally version them.
-- The backend currently falls back gracefully when the full legal assistant model is unavailable.
-- SQLite is fine for local and single-user deployments; move to Postgres for multi-user production.
+The backend works without any API key (falls back to extractive summary and retrieval-based chat), but for full LLM chat you need a HuggingFace or OpenAI key.
 
-## Verified Checks
+## Environment Variables
 
-- Auth register/login/me
-- Protected route enforcement
-- Analyze upload flow
-- History listing and delete flow
-- Compare flow
-- RAG chat flow
-- Frontend lint
-- Frontend production build
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SECRET_KEY` | `supersecretkey` | JWT signing key |
+| `DATABASE_URL` | `sqlite:///./data/legal_docs.db` | Database URL |
+| `HUGGINGFACE_API_KEY` | — | HuggingFace API token |
+| `OPENAI_API_KEY` | — | OpenAI API key (optional) |
+| `USE_API_LLM` | `true` | Use API-based LLM (no local model) |
+| `OLLAMA_ENABLED` | `false` | Enable Ollama local LLM |
+| `HF_CHAT_MODEL` | `Qwen/Qwen2.5-0.5B-Instruct` | HF model for chat |
+| `HF_SUMMARY_MODEL` | `facebook/bart-large-cnn` | HF model for summary |
+| `HF_TRANSLATION_MODEL` | `Helsinki-NLP/opus-mt-en-hi` | HF model for translation |
+| `CORS_ORIGINS` | localhost origins | Allowed CORS origins |
+| `VECTOR_DB_BACKEND` | `faiss` | Vector store backend |
+
+## License
+
+MIT
