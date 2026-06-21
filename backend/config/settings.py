@@ -106,21 +106,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     CORS_ORIGINS: str = os.getenv(
         "CORS_ORIGINS",
-        ",".join(
-            [
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://[::1]:5173",
-                "http://localhost:5174",
-                "http://127.0.0.1:5174",
-                "http://[::1]:5174",
-                "http://localhost:4173",
-                "http://127.0.0.1:4173",
-                "http://[::1]:4173",
-                "https://legal-document-analysis-alpha.vercel.app",
-                "https://legal-document-analysis.vercel.app",
-            ]
-        ),
+        "*",
     )
 
     # Uploads
