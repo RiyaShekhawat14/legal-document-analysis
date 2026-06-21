@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: legal-document-analyzer-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///./data/legal_docs.db
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: USE_API_LLM
+        value: "true"
+      - key: OLLAMA_ENABLED
+        value: "false"
+      - key: LEGAL_AI_CPU_SAFE_MODE
+        value: "true"
+      - key: LEGAL_AI_ENABLE_FINE_TUNED_ON_CPU
+        value: "false"
+      - key: HF_CHAT_MODEL
+        value: Qwen/Qwen2.5-0.5B-Instruct
+      - key: HF_SUMMARY_MODEL
+        value: facebook/bart-large-cnn
+      - key: HF_TRANSLATION_MODEL
+        value: Helsinki-NLP/opus-mt-en-hi
+      - key: VECTOR_DB_BACKEND
+        value: faiss
+      - key: CORS_ORIGINS
+        value: "*"
+    healthCheckPath: /health
+    autoDeploy: true

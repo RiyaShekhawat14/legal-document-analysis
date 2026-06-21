@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 from auth.dependencies import get_current_user
 from config.settings import get_runtime_mode, save_runtime_mode, settings
-from rag.rag_pipeline import ask_question, get_rag_status
+from rag.rag_pipeline import ask_question, get_rag_status, _get_assistant_status
 from services.legal_assistant_service import legal_assistant_service
 
 router = APIRouter()
@@ -26,7 +26,7 @@ class AssistantModeRequest(BaseModel):
 @router.get("/status")
 def get_chat_status(current_user=Depends(get_current_user)):
     return {
-        "assistant": legal_assistant_service.get_status(),
+        "assistant": _get_assistant_status(),
         "document": get_rag_status(session_id=current_user.id),
         "runtime_mode": get_runtime_mode(),
     }

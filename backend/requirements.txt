@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 sqlalchemy
 pydantic
 pydantic-settings
@@ -13,10 +13,5 @@ passlib
 python-jose
 pdfplumber
 requests
-torch
-transformers
-peft
-accelerate
-sentence-transformers
 faiss-cpu
 qdrant-client

@@ -1,6 +1,8 @@
 from rag.embedder import get_embedding, get_embedding_dim
 from rag.vector_store import VectorStore
+from config.settings import settings
 from services.legal_assistant_service import legal_assistant_service
+from services.api_llm_service import api_llm_service
 from services.general_qa_service import generate_general_legal_advice
 
 _embedding_dim = get_embedding_dim()
@@ -78,16 +80,27 @@ def ask_question(question, history=None, k=3, session_id=None):
         result = generate_general_legal_advice(question)
         result["sources"] = []
         result["document"] = doc_status
-        result["assistant"] = legal_assistant_service.get_status()
+        result["assistant"] = _get_assistant_status()
         return result
 
     context_chunks = retrieve_context(question, k=k, session_id=session_id)
-    result = legal_assistant_service.answer_question(
-        question,
-        context_chunks,
-        history=history,
-    )
+
+    if settings.USE_API_LLM:
+        result = api_llm_service.answer_question(
+            question, context_chunks, history=history,
+        )
+    else:
+        result = legal_assistant_service.answer_question(
+            question, context_chunks, history=history,
+        )
+
     result["sources"] = context_chunks
     result["document"] = doc_status
-    result["assistant"] = legal_assistant_service.get_status()
+    result["assistant"] = _get_assistant_status()
     return result
+
+
+def _get_assistant_status():
+    if settings.USE_API_LLM:
+        return api_llm_service.get_status()
+    return legal_assistant_service.get_status()

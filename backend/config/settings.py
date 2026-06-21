@@ -144,7 +144,14 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3:8b")
     OLLAMA_TIMEOUT: int = int(os.getenv("OLLAMA_TIMEOUT", "90"))
-    OLLAMA_ENABLED: bool = True
+    OLLAMA_ENABLED: bool = False
+
+    # API-based inference (for deployment without local models)
+    HF_CHAT_MODEL: str = os.getenv("HF_CHAT_MODEL", "Qwen/Qwen2.5-0.5B-Instruct")
+    HF_SUMMARY_MODEL: str = os.getenv("HF_SUMMARY_MODEL", "facebook/bart-large-cnn")
+    HF_TRANSLATION_MODEL: str = os.getenv("HF_TRANSLATION_MODEL", "Helsinki-NLP/opus-mt-en-hi")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    USE_API_LLM: bool = True
 
     # ML Models
     MODEL_PATH: str = "ml/artifacts/risk_model.pkl"
